@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WTV Service - API Test Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .status-bar {
+            background: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+        
+        .status-dot.connected { background: #48bb78; }
+        .status-dot.error { background: #f56565; }
+        
+        .base-url-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #3182ce;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2c5282;
+        }
+        
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: #edf2f7;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .method-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        .method-get { background: #c6f6d5; color: #22543d; }
+        .method-post { background: #bee3f8; color: #2a4365; }
+        
+        .card-body {
+            padding: 16px;
+        }
+        
+        .endpoint-path {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 12px;
+            word-break: break-all;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .card-footer {
+            padding: 12px 16px;
+            background: #f7fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .response-panel {
+            margin-top: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .response-header {
+            background: #edf2f7;
+            padding: 8px 12px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .response-status {
+            font-weight: 600;
+        }
+        
+        .response-status.success { color: #38a169; }
+        .response-status.error { color: #e53e3e; }
+        
+        .response-body {
+            padding: 12px;
+            background: #1a202c;
+            color: #a0aec0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 11px;
+            max-height: 300px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        
+        .response-time {
+            color: #718096;
+            font-size: 11px;
+        }
+        
+        .hidden { display: none; }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .data-table th, .data-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .data-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .data-table tr:hover {
+            background: #f7fafc;
+        }
+        
+        .clickable-row {
+            cursor: pointer;
+        }
+        
+        .clickable-row:hover {
+            background: #ebf4ff !important;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 16px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-size: 14px;
+            color: #718096;
+        }
+        
+        .tab.active {
+            color: #3182ce;
+            border-bottom-color: #3182ce;
+            font-weight: 500;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .info-box {
+            background: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #2c5282;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 WTV Service - API Test Dashboard</h1>
+        <p>Weekly Time Verification Service v2.0 - Test all endpoints</p>
+    </div>
+    
+    <div class="container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Checking connection...</span>
+            </div>
+            <input type="text" class="base-url-input" id="baseUrl" value="http://localhost:8080/wtv/api/wtv" placeholder="Base URL">
+            <button class="btn btn-primary" onclick="checkHealth()">🔄 Check Health</button>
+            <a href="http://localhost:8080/wtv/swagger-ui.html" target="_blank" class="btn btn-secondary">📖 Swagger UI</a>
+            <a href="http://localhost:8080/wtv/h2-console" target="_blank" class="btn btn-secondary">🗄️ H2 Console</a>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('dropdowns')">📅 Dropdowns & Navigation</div>
+            <div class="tab" onclick="showTab('groupview')">👥 Group View</div>
+            <div class="tab" onclick="showTab('detail')">👤 Employee Detail</div>
+            <div class="tab" onclick="showTab('export')">📥 CSV Export</div>
+            <div class="tab" onclick="showTab('ctrs')">🗓️ CTRS Calendar</div>
+        </div>
+        
+        <!-- Tab: Dropdowns & Navigation -->
+        <div id="tab-dropdowns" class="tab-content active">
+            <div class="info-box">
+                These endpoints populate the Reporting Month and Week dropdowns, and handle Previous/Next navigation.
+            </div>
+            <div class="grid">
+                <!-- Get Reporting Months -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Get Reporting Months</h3>
+                        <span class="method-badge method-get">GET</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-path">/reporting-months</div>
+                        <p style="font-size: 13px; color: #718096;">Returns all reporting months with nested weeks for dropdown population.</p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-primary" onclick="callGetReportingMonths()">Execute</button>
+                    </div>
+                    <div class="response-panel hidden" id="resp-months">
+                        <div class="response-header">
+                            <span class="response-status" id="status-months"></span>
+                            <span class="response-time" id="time-months"></span>
+                        </div>
+                        <pre class="response-body" id="body-months"></pre>
+                    </div>
+                </div>
+                
+                <!-- Get Weeks for Month -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Get Weeks for Month</h3>
+                        <span class="method-badge method-get">GET</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-path">/weeks?month={month}</div>
+                        <div class="form-group">
+                            <label>Reporting Month</label>
+                            <select id="weekMonth">
+                                <option value="2023-10">2023-10 (October)</option>
+                                <option value="2023-11" selected>2023-11 (November)</option>
+                                <option value="2023-12">2023-12 (December)</option>
+                                <option value="2024-01">2024-01 (January)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-primary" onclick="callGetWeeks()">Execute</button>
+                    </div>
+                    <div class="response-panel hidden" id="resp-weeks">
+                        <div class="response-header">
+                            <span class="response-status" id="status-weeks"></span>
+                            <span class="response-time" id="time-weeks"></span>
+                        </div>
+                        <pre class="response-body" id="body-weeks"></pre>
+                    </div>
+                </div>
+                
+                <!-- Get Pay Period by Date -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Get Pay Period by Date</h3>
+                        <span class="method-badge method-get">GET</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-path">/pay-period?date={date}</div>
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" id="payPeriodDate" value="2023-10-30">
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-primary" onclick="callGetPayPeriod()">Execute</button>
+                    </div>
+                    <div class="response-panel hidden" id="resp-payperiod">
+                        <div class="response-header">
+                            <span class="response-status" id="status-payperiod"></span>
+                            <span class="response-time" id="time-payperiod"></span>
+                        </div>
+                        <pre class="response-body" id="body-payperiod"></pre>
+                    </div>
+                </div>
+                
+                <!-- Previous/Next Week Navigation -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Week Navigation (Previous/Next)</h3>
+                        <span class="method-badge method-get">GET</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-path">/pay-period/previous | /pay-period/next</div>
+                        <div class="form-group">
+                            <label>Current Week Start Date (Sunday)</label>
+                            <input type="date" id="navStartDate" value="2023-10-29">
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-secondary" onclick="callNavigate('previous')">⬅️ Previous Week</button>
+                        <button class="btn btn-secondary" onclick="callNavigate('next')">Next Week ➡️</button>
+                    </div>
+                    <div class="response-panel hidden" id="resp-nav">
+                        <div class="response-header">
+                            <span class="response-status" id="status-nav"></span>
+                            <span class="response-time" id="time-nav"></span>
+                        </div>
+                        <pre class="response-body" id="body-nav"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab: Group View -->
+        <div id="tab-groupview" class="tab-content">
+            <div class="info-box">
+                Main table showing weekly time summaries for all employees. Click on a row to drill down to employee detail.
+            </div>
+            <div class="card full-width">
+                <div class="card-header">
+                    <h3>Group Weekly Hours Verification</h3>
+                    <span class="method-badge method-get">GET</span>
+                </div>
+                <div class="card-body">
+                    <div class="endpoint-path">/summaries?startDate={startDate}&endDate={endDate}&assignmentNumber={filter}</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Week Start (Sunday)</label>
+                            <input type="date" id="summaryStartDate" value="2023-10-29">
+                        </div>
+                        <div class="form-group">
+                            <label>Week End (Saturday)</label>
+                            <input type="date" id="summaryEndDate" value="2023-11-04">
+                        </div>
+                        <div class="form-group">
+                            <label>Assignment # Filter (optional)</label>
+                            <input type="text" id="summaryFilter" placeholder="e.g., 21012">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary" onclick="callGetSummaries()">🔍 Load Summaries</button>
+                    <button class="btn btn-secondary" onclick="toggleRawJson('summaries')">Toggle Raw JSON</button>
+                </div>
+                <div id="summaries-table" style="padding: 16px;"></div>
+                <div class="response-panel hidden" id="resp-summaries">
+                    <div class="response-header">
+                        <span class="response-status" id="status-summaries"></span>
+                        <span class="response-time" id="time-summaries"></span>
+                    </div>
+                    <pre class="response-body" id="body-summaries"></pre>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab: Employee Detail -->
+        <div id="tab-detail" class="tab-content">
+            <div class="info-box">
+                Drill-down view showing complete employee timesheet with Daily Summary, Case TIN, and Non-Case Time tables.
+            </div>
+            <div class="card full-width">
+                <div class="card-header">
+                    <h3>Employee Timesheet Detail</h3>
+                    <span class="method-badge method-get">GET</span>
+                </div>
+                <div class="card-body">
+                    <div class="endpoint-path">/employees/{roid}/timesheet?startDate={startDate}&endDate={endDate}</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Assignment # (ROID)</label>
+                            <input type="text" id="detailRoid" value="21012901" placeholder="e.g., 21012901">
+                        </div>
+                        <div class="form-group">
+                            <label>Week Start (Sunday)</label>
+                            <input type="date" id="detailStartDate" value="2023-10-29">
+                        </div>
+                        <div class="form-group">
+                            <label>Week End (Saturday)</label>
+                            <input type="date" id="detailEndDate" value="2023-11-04">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary" onclick="callGetEmployeeDetail()">🔍 Load Timesheet</button>
+                    <button class="btn btn-secondary" onclick="toggleRawJson('detail')">Toggle Raw JSON</button>
+                </div>
+                <div id="detail-tables" style="padding: 16px;"></div>
+                <div class="response-panel hidden" id="resp-detail">
+                    <div class="response-header">
+                        <span class="response-status" id="status-detail"></span>
+                        <span class="response-time" id="time-detail"></span>
+                    </div>
+                    <pre class="response-body" id="body-detail"></pre>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab: CSV Export -->
+        <div id="tab-export" class="tab-content">
+            <div class="info-box">
+                Export group summaries as a CSV file for download.
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Export to CSV</h3>
+                    <span class="method-badge method-get">GET</span>
+                </div>
+                <div class="card-body">
+                    <div class="endpoint-path">/summaries/export?startDate={startDate}&endDate={endDate}</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Week Start (Sunday)</label>
+                            <input type="date" id="exportStartDate" value="2023-10-29">
+                        </div>
+                        <div class="form-group">
+                            <label>Week End (Saturday)</label>
+                            <input type="date" id="exportEndDate" value="2023-11-04">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-success" onclick="downloadCsv()">📥 Download CSV</button>
+                    <button class="btn btn-secondary" onclick="previewCsv()">👁️ Preview</button>
+                </div>
+                <div class="response-panel hidden" id="resp-export">
+                    <div class="response-header">
+                        <span class="response-status" id="status-export"></span>
+                        <span class="response-time" id="time-export"></span>
+                    </div>
+                    <pre class="response-body" id="body-export"></pre>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab: CTRS Calendar -->
+        <div id="tab-ctrs" class="tab-content">
+            <div class="info-box">
+                CTRS Calendar management - Create and manage fiscal years (October - September). 
+                <strong>POST, PUT, DELETE</strong> operations available.
+            </div>
+            
+            <div class="grid">
+                <!-- Get All Fiscal Years -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Get All Fiscal Years</h3>
+                        <span class="method-badge method-get">GET</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-path">/api/ctrs/fiscal-years</div>
+                        <p style="font-size: 13px; color: #718096;">Returns list of available fiscal years for dropdown.</p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-primary" onclick="callGetFiscalYears()">Execute</button>
+                    </div>
+                    <div class="response-panel hidden" id="resp-fy-list">
+                        <div class="response-header">
+                            <span class="response-status" id="status-fy-list"></span>
+                            <span class="response-time" id="time-fy-list"></span>
+                        </div>
+                        <pre class="response-body" id="body-fy-list"></pre>
+                    </div>
+                </div>
+                
+                <!-- Get Fiscal Year Details -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Get Fiscal Year Details</h3>
+                        <span class="method-badge method-get">GET</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-path">/api/ctrs/fiscal-years/{year}</div>
+                        <div class="form-group">
+                            <label>Fiscal Year</label>
+                            <input type="number" id="fyDetailYear" value="2024" min="2000" max="2100">
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-primary" onclick="callGetFiscalYearDetail()">Execute</button>
+                    </div>
+                    <div class="response-panel hidden" id="resp-fy-detail">
+                        <div class="response-header">
+                            <span class="response-status" id="status-fy-detail"></span>
+                            <span class="response-time" id="time-fy-detail"></span>
+                        </div>
+                        <pre class="response-body" id="body-fy-detail"></pre>
+                    </div>
+                </div>
+                
+                <!-- Create New Fiscal Year -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Create New Fiscal Year</h3>
+                        <span class="method-badge method-post">POST</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-path">/api/ctrs/fiscal-years</div>
+                        <div class="form-group">
+                            <label>Fiscal Year to Create</label>
+                            <input type="number" id="fyCreateYear" value="2027" min="2000" max="2100">
+                        </div>
+                        <div class="form-group">
+                            <label>Start Date (optional - auto-calculated if blank)</label>
+                            <input type="date" id="fyCreateStartDate">
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-success" onclick="callCreateFiscalYear()">🆕 Create Fiscal Year</button>
+                    </div>
+                    <div class="response-panel hidden" id="resp-fy-create">
+                        <div class="response-header">
+                            <span class="response-status" id="status-fy-create"></span>
+                            <span class="response-time" id="time-fy-create"></span>
+                        </div>
+                        <pre class="response-body" id="body-fy-create"></pre>
+                    </div>
+                </div>
+                
+                <!-- Delete Fiscal Year -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Delete Fiscal Year</h3>
+                        <span class="method-badge" style="background: #fed7d7; color: #c53030;">DELETE</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-path">/api/ctrs/fiscal-years/{year}</div>
+                        <div class="form-group">
+                            <label>Fiscal Year to Delete</label>
+                            <input type="number" id="fyDeleteYear" value="2027" min="2000" max="2100">
+                        </div>
+                        <p style="font-size: 12px; color: #e53e3e; margin-top: 8px;">⚠️ This will delete all 12 months for the fiscal year!</p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn" style="background: #e53e3e; color: white;" onclick="callDeleteFiscalYear()">🗑️ Delete Fiscal Year</button>
+                    </div>
+                    <div class="response-panel hidden" id="resp-fy-delete">
+                        <div class="response-header">
+                            <span class="response-status" id="status-fy-delete"></span>
+                            <span class="response-time" id="time-fy-delete"></span>
+                        </div>
+                        <pre class="response-body" id="body-fy-delete"></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Full Width: Get/Update Fiscal Month -->
+            <div class="card full-width" style="margin-top: 20px;">
+                <div class="card-header">
+                    <h3>Get / Update Fiscal Month</h3>
+                    <span class="method-badge method-get">GET</span>
+                    <span class="method-badge" style="background: #faf089; color: #744210; margin-left: 5px;">PUT</span>
+                </div>
+                <div class="card-body">
+                    <div class="endpoint-path">/api/ctrs/months/{rptMonth}</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Month (e.g., OCT2024, NOV2024)</label>
+                            <input type="text" id="monthRptMonth" value="OCT2024" placeholder="OCT2024">
+                        </div>
+                        <div class="form-group">
+                            <label>Weeks (for update)</label>
+                            <input type="number" id="monthWeeks" value="4" min="4" max="5">
+                        </div>
+                        <div class="form-group">
+                            <label>Workdays (for update)</label>
+                            <input type="number" id="monthWorkdays" value="20" min="1" max="31">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary" onclick="callGetFiscalMonth()">🔍 Get Month</button>
+                    <button class="btn" style="background: #ecc94b; color: #744210;" onclick="callUpdateFiscalMonth()">✏️ Update Month</button>
+                </div>
+                <div class="response-panel hidden" id="resp-month">
+                    <div class="response-header">
+                        <span class="response-status" id="status-month"></span>
+                        <span class="response-time" id="time-month"></span>
+                    </div>
+                    <pre class="response-body" id="body-month"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Get base URL
+        function getBaseUrl() {
+            return document.getElementById('baseUrl').value.replace(/\/$/, '');
+        }
+        
+        // Tab switching
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+        
+        // Toggle raw JSON display
+        function toggleRawJson(id) {
+            const panel = document.getElementById('resp-' + id);
+            panel.classList.toggle('hidden');
+        }
+        
+        // Health check
+        async function checkHealth() {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
+            try {
+                const response = await fetch(getBaseUrl() + '/health');
+                if (response.ok) {
+                    dot.className = 'status-dot connected';
+                    text.textContent = 'Connected - Service is healthy';
+                } else {
+                    throw new Error('Not healthy');
+                }
+            } catch (e) {
+                dot.className = 'status-dot error';
+                text.textContent = 'Connection failed - Check if service is running';
+            }
+        }
+        
+        // Generic API call function
+        async function apiCall(endpoint, responseId) {
+            const startTime = Date.now();
+            const panel = document.getElementById('resp-' + responseId);
+            const status = document.getElementById('status-' + responseId);
+            const time = document.getElementById('time-' + responseId);
+            const body = document.getElementById('body-' + responseId);
+            
+            panel.classList.remove('hidden');
+            body.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(getBaseUrl() + endpoint);
+                const elapsed = Date.now() - startTime;
+                const data = await response.text();
+                
+                let formatted;
+                try {
+                    formatted = JSON.stringify(JSON.parse(data), null, 2);
+                } catch {
+                    formatted = data;
+                }
+                
+                status.textContent = response.status + ' ' + response.statusText;
+                status.className = 'response-status ' + (response.ok ? 'success' : 'error');
+                time.textContent = elapsed + 'ms';
+                body.textContent = formatted;
+                
+                return { ok: response.ok, data: data };
+            } catch (e) {
+                status.textContent = 'Error';
+                status.className = 'response-status error';
+                time.textContent = '';
+                body.textContent = e.message;
+                return { ok: false, data: null };
+            }
+        }
+        
+        // API Calls
+        async function callGetReportingMonths() {
+            await apiCall('/reporting-months', 'months');
+        }
+        
+        async function callGetWeeks() {
+            const month = document.getElementById('weekMonth').value;
+            await apiCall('/weeks?month=' + month, 'weeks');
+        }
+        
+        async function callGetPayPeriod() {
+            const date = document.getElementById('payPeriodDate').value;
+            await apiCall('/pay-period?date=' + date, 'payperiod');
+        }
+        
+        async function callNavigate(direction) {
+            const date = document.getElementById('navStartDate').value;
+            const result = await apiCall('/pay-period/' + direction + '?currentStartDate=' + date, 'nav');
+            
+            // Update the input with new date
+            if (result.ok && result.data) {
+                const data = JSON.parse(result.data);
+                if (data.startDate) {
+                    document.getElementById('navStartDate').value = data.startDate;
+                }
+            }
+        }
+        
+        async function callGetSummaries() {
+            const start = document.getElementById('summaryStartDate').value;
+            const end = document.getElementById('summaryEndDate').value;
+            const filter = document.getElementById('summaryFilter').value;
+            
+            let endpoint = '/summaries?startDate=' + start + '&endDate=' + end;
+            if (filter) endpoint += '&assignmentNumber=' + filter;
+            
+            const result = await apiCall(endpoint, 'summaries');
+            
+            if (result.ok && result.data) {
+                renderSummariesTable(JSON.parse(result.data));
+            }
+        }
+        
+        function renderSummariesTable(data) {
+            const container = document.getElementById('summaries-table');
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p style="color: #718096;">No data found for selected date range.</p>';
+                return;
+            }
+            
+            let html = '<table class="data-table">';
+            html += '<thead><tr>';
+            html += '<th>Assignment #</th><th>Employee Name</th><th>Tour Hours</th><th>Adjusted</th>';
+            html += '<th>Hours Worked</th><th>Case Direct</th><th>Code Direct</th><th>Overhead</th>';
+            html += '<th>Days</th><th>Tour Type</th><th>Last EOD</th>';
+            html += '</tr></thead><tbody>';
+            
+            data.forEach(row => {
+                html += `<tr class="clickable-row" onclick="drillDown(${row.assignmentNumber})">`;
+                html += `<td><strong>${row.assignmentNumber}</strong></td>`;
+                html += `<td>${row.employeeName || '-'}</td>`;
+                html += `<td>${row.tourOfDutyHours}</td>`;
+                html += `<td>${row.adjustedTour}</td>`;
+                html += `<td>${row.hoursWorked}</td>`;
+                html += `<td>${row.caseDirectTime}</td>`;
+                html += `<td>${row.codeDirectTime}</td>`;
+                html += `<td>${row.overheadTime}</td>`;
+                html += `<td>${row.reportDays}</td>`;
+                html += `<td>${row.tourOfDutyType}</td>`;
+                html += `<td>${row.lastDateEod || '-'}</td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            html += '<p style="margin-top: 10px; font-size: 12px; color: #718096;">💡 Click on a row to view employee detail</p>';
+            container.innerHTML = html;
+        }
+        
+        function drillDown(roid) {
+            // Switch to detail tab and load data
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab')[2].classList.add('active');
+            document.getElementById('tab-detail').classList.add('active');
+            
+            // Set the ROID and dates
+            document.getElementById('detailRoid').value = roid;
+            document.getElementById('detailStartDate').value = document.getElementById('summaryStartDate').value;
+            document.getElementById('detailEndDate').value = document.getElementById('summaryEndDate').value;
+            
+            // Load the detail
+            callGetEmployeeDetail();
+        }
+        
+        async function callGetEmployeeDetail() {
+            const roid = document.getElementById('detailRoid').value;
+            const start = document.getElementById('detailStartDate').value;
+            const end = document.getElementById('detailEndDate').value;
+            
+            const endpoint = '/employees/' + roid + '/timesheet?startDate=' + start + '&endDate=' + end;
+            const result = await apiCall(endpoint, 'detail');
+            
+            if (result.ok && result.data) {
+                renderDetailTables(JSON.parse(result.data));
+            }
+        }
+        
+        function renderDetailTables(data) {
+            const container = document.getElementById('detail-tables');
+            
+            let html = `<h4 style="margin-bottom: 10px;">Employee: ${data.employeeName || 'Unknown'} (${data.assignmentNumber})</h4>`;
+            html += `<p style="color: #718096; margin-bottom: 20px;">Week: ${data.weekStartDate} to ${data.weekEndDate}</p>`;
+            
+            // Table 1: Daily Summary
+            html += '<h5 style="margin: 15px 0 10px;">📊 Daily Summary</h5>';
+            html += '<table class="data-table"><thead><tr><th>Type</th><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Total</th></tr></thead><tbody>';
+            if (data.dailySummary) {
+                data.dailySummary.forEach(row => {
+                    html += `<tr><td><strong>${row.rowType}</strong></td>`;
+                    ['SUN','MON','TUE','WED','THU','FRI','SAT'].forEach(day => {
+                        html += `<td>${row.hoursByDay[day] || 0}</td>`;
+                    });
+                    html += `<td><strong>${row.totalHours}</strong></td></tr>`;
+                });
+            }
+            html += '</tbody></table>';
+            
+            // Table 2: Case TIN
+            html += `<h5 style="margin: 20px 0 10px;">📋 Case TIN (Total: ${data.totalDirectCaseTime || 0})</h5>`;
+            if (data.caseTimeEntries && data.caseTimeEntries.length > 0) {
+                html += '<table class="data-table"><thead><tr><th>Case TIN</th><th>Name</th><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Total</th></tr></thead><tbody>';
+                data.caseTimeEntries.forEach(row => {
+                    html += `<tr><td>${row.caseTin}</td><td>${row.taxpayerName || '-'}</td>`;
+                    ['SUN','MON','TUE','WED','THU','FRI','SAT'].forEach(day => {
+                        html += `<td>${row.hoursByDay[day] || 0}</td>`;
+                    });
+                    html += `<td><strong>${row.totalHours}</strong></td></tr>`;
+                });
+                html += '</tbody></table>';
+            } else {
+                html += '<p style="color: #718096;">No case time entries.</p>';
+            }
+            
+            // Table 3: Non-Case Time
+            html += `<h5 style="margin: 20px 0 10px;">⏱️ Non-Case Time (Total: ${data.totalNonCreditDirectCaseTime || 0})</h5>`;
+            if (data.nonCaseTimeEntries && data.nonCaseTimeEntries.length > 0) {
+                html += '<table class="data-table"><thead><tr><th>Description</th><th>Code</th><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Total</th></tr></thead><tbody>';
+                data.nonCaseTimeEntries.forEach(row => {
+                    html += `<tr><td>${row.timeDescription}</td><td>${row.timeCode}</td>`;
+                    ['SUN','MON','TUE','WED','THU','FRI','SAT'].forEach(day => {
+                        html += `<td>${row.hoursByDay[day] || 0}</td>`;
+                    });
+                    html += `<td><strong>${row.totalHours}</strong></td></tr>`;
+                });
+                html += '</tbody></table>';
+            } else {
+                html += '<p style="color: #718096;">No non-case time entries.</p>';
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        async function previewCsv() {
+            const start = document.getElementById('exportStartDate').value;
+            const end = document.getElementById('exportEndDate').value;
+            await apiCall('/summaries/export?startDate=' + start + '&endDate=' + end, 'export');
+        }
+        
+        function downloadCsv() {
+            const start = document.getElementById('exportStartDate').value;
+            const end = document.getElementById('exportEndDate').value;
+            window.open(getBaseUrl() + '/summaries/export?startDate=' + start + '&endDate=' + end, '_blank');
+        }
+        
+        // Check health on load
+        window.onload = function() {
+            checkHealth();
+        };
+        
+        // =========================================================================
+        // CTRS Calendar API Functions
+        // =========================================================================
+        
+        function getCtrsBaseUrl() {
+            // CTRS uses /api/ctrs instead of /api/wtv
+            return document.getElementById('baseUrl').value.replace('/api/wtv', '/api/ctrs');
+        }
+        
+        async function ctrsApiCall(endpoint, responseId, options = {}) {
+            const startTime = Date.now();
+            const panel = document.getElementById('resp-' + responseId);
+            const status = document.getElementById('status-' + responseId);
+            const time = document.getElementById('time-' + responseId);
+            const body = document.getElementById('body-' + responseId);
+            
+            panel.classList.remove('hidden');
+            body.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(getCtrsBaseUrl() + endpoint, options);
+                const elapsed = Date.now() - startTime;
+                const data = await response.text();
+                
+                let formatted;
+                try {
+                    formatted = JSON.stringify(JSON.parse(data), null, 2);
+                } catch {
+                    formatted = data;
+                }
+                
+                status.textContent = response.status + ' ' + response.statusText;
+                status.className = 'response-status ' + (response.ok ? 'success' : 'error');
+                time.textContent = elapsed + 'ms';
+                body.textContent = formatted;
+                
+                return { ok: response.ok, data: data };
+            } catch (e) {
+                status.textContent = 'Error';
+                status.className = 'response-status error';
+                time.textContent = '';
+                body.textContent = e.message;
+                return { ok: false, data: null };
+            }
+        }
+        
+        async function callGetFiscalYears() {
+            await ctrsApiCall('/fiscal-years', 'fy-list');
+        }
+        
+        async function callGetFiscalYearDetail() {
+            const year = document.getElementById('fyDetailYear').value;
+            await ctrsApiCall('/fiscal-years/' + year, 'fy-detail');
+        }
+        
+        async function callCreateFiscalYear() {
+            const year = document.getElementById('fyCreateYear').value;
+            const startDate = document.getElementById('fyCreateStartDate').value;
+            
+            const requestBody = {
+                fiscalYear: parseInt(year)
+            };
+            if (startDate) {
+                requestBody.startDate = startDate;
+            }
+            
+            await ctrsApiCall('/fiscal-years', 'fy-create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+        }
+        
+        async function callDeleteFiscalYear() {
+            const year = document.getElementById('fyDeleteYear').value;
+            
+            if (!confirm('Are you sure you want to delete Fiscal Year ' + year + '? This will delete all 12 months.')) {
+                return;
+            }
+            
+            await ctrsApiCall('/fiscal-years/' + year, 'fy-delete', {
+                method: 'DELETE'
+            });
+        }
+        
+        async function callGetFiscalMonth() {
+            const rptMonth = document.getElementById('monthRptMonth').value.toUpperCase();
+            await ctrsApiCall('/months/' + rptMonth, 'month');
+        }
+        
+        async function callUpdateFiscalMonth() {
+            const rptMonth = document.getElementById('monthRptMonth').value.toUpperCase();
+            const weeks = document.getElementById('monthWeeks').value;
+            const workdays = document.getElementById('monthWorkdays').value;
+            
+            const requestBody = {
+                weeks: parseInt(weeks),
+                workdays: parseInt(workdays)
+            };
+            
+            await ctrsApiCall('/months/' + rptMonth, 'month', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+        }
+    </script>
+</body>
+</html>

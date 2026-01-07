@@ -1,0 +1,116 @@
+# =============================================================================
+# WTV Service Configuration
+# =============================================================================
+
+spring:
+  application:
+    name: wtv-service
+
+  # Default profile uses H2 for local development
+  profiles:
+    active: local
+
+server:
+  port: 8080
+  servlet:
+    context-path: /wtv
+
+# Swagger / OpenAPI
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.entity.wtv: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+---
+# =============================================================================
+# LOCAL Profile - H2 In-Memory Database
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  datasource:
+    url: jdbc:h2:mem:wtvdb;DB_CLOSE_DELAY=-1;MODE=Oracle
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql
+
+---
+# =============================================================================
+# ORACLE Profile - Production Database
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: oracle
+
+  datasource:
+    url: jdbc:oracle:thin:@//localhost:1521/ENTITYDEV
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: ${DB_USERNAME:entitydev}
+    password: ${DB_PASSWORD:}
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: ENTITYDEV
+
+  sql:
+    init:
+      mode: never
