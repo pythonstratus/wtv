@@ -847,14 +847,26 @@
                 return;
             }
             
-            let html = '<table class="data-table">';
+            const MAX_DISPLAY = 1000;
+            const totalRecords = data.length;
+            const displayData = data.slice(0, MAX_DISPLAY);
+            const isLimited = totalRecords > MAX_DISPLAY;
+            
+            let html = '<div style="margin-bottom: 10px; font-size: 13px; color: #4a5568;">';
+            html += `📊 Showing ${displayData.length} of ${totalRecords} records`;
+            if (isLimited) {
+                html += ' <span style="color: #e53e3e;">(limited to first 1,000 - use Assignment # filter to narrow results)</span>';
+            }
+            html += '</div>';
+            
+            html += '<table class="data-table">';
             html += '<thead><tr>';
             html += '<th>Assignment #</th><th>Employee Name</th><th>Tour Hours</th><th>Adjusted</th>';
             html += '<th>Hours Worked</th><th>Case Direct</th><th>Code Direct</th><th>Overhead</th>';
             html += '<th>Days</th><th>Tour Type</th><th>Last EOD</th>';
             html += '</tr></thead><tbody>';
             
-            data.forEach(row => {
+            displayData.forEach(row => {
                 html += `<tr class="clickable-row" onclick="drillDown(${row.assignmentNumber})">`;
                 html += `<td><strong>${row.assignmentNumber}</strong></td>`;
                 html += `<td>${row.employeeName || '-'}</td>`;
