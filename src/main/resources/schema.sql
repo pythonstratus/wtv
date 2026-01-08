@@ -61,8 +61,8 @@ CREATE INDEX ENTEMP_ROID_IX ON ENTEMP(ROID);
 
 -- =============================================================================
 -- ENTMONTH - Pay Period / Reporting Month (CTRS Calendar)
--- Primary Key: RPTMONTH (e.g., "OCT2026", "NOV2026")
--- Fiscal Year: October to September
+-- Primary Key: RPTMONTH (e.g., "OCT2025", "NOV2025")
+-- Fiscal Year: October to September (FY2026 = Oct 2025 - Sep 2026)
 -- =============================================================================
 CREATE TABLE ENTMONTH (
     RPTMONTH CHAR(7) PRIMARY KEY,
@@ -72,102 +72,78 @@ CREATE TABLE ENTMONTH (
     STARTCYC NUMBER(6),
     ENDCYC NUMBER(6),
     WORKDAYS NUMBER(2),
-    RPTNATIONAL DATE
+    RPTNATIONAL DATE,
+    -- New columns for CTRS Calendar enhancements
+    ACTIVE CHAR(1) DEFAULT 'Y',           -- Active status: Y=active, N=inactive
+    HOLIDAYS NUMBER(2) DEFAULT 0,          -- Total holidays in the month
+    HOURS NUMBER(3),                       -- Total hours (if different from workdays)
+    WEEK_DATA VARCHAR2(1000)               -- JSON storage for week-level data
 );
 
 CREATE INDEX ENTMONTH_STARTDT_IX ON ENTMONTH(STARTDT);
 CREATE INDEX ENTMONTH_ENDDT_IX ON ENTMONTH(ENDDT);
+CREATE INDEX ENTMONTH_ACTIVE_IX ON ENTMONTH(ACTIVE);
 
 -- =============================================================================
 -- ENTCODE - Time Code Reference
 -- =============================================================================
 CREATE TABLE ENTCODE (
-    CODE CHAR(3),
+    CODE CHAR(5),
     TYPE CHAR(1),
-    CDNAME VARCHAR2(35),
-    AREA NUMBER(4),
-    EXTRDT DATE,
+    ENTDESC VARCHAR2(50),
     ACTIVE CHAR(1),
-    MGR CHAR(1),
-    CLERK CHAR(1),
-    PROF CHAR(1),
-    PARA CHAR(1),
-    DISP CHAR(1),
+    CATEGORY CHAR(1),
+    TINCATEGORY CHAR(1),
     TIMEDEF CHAR(1),
-    CTRSDEF NUMBER(2),
-    CTRSLN NUMBER(2),
     PRIMARY KEY (CODE, TYPE)
 );
+
+CREATE INDEX ENTCODE_TIMEDEF_IX ON ENTCODE(TIMEDEF);
+
+-- =============================================================================
+-- ENT - TIN/Case Master
+-- =============================================================================
+CREATE TABLE ENT (
+    TIMESID NUMBER(8) PRIMARY KEY,
+    ENTNAME VARCHAR2(50),
+    TIN CHAR(9),
+    JURISDICTION CHAR(2),
+    ASSGNDT DATE,
+    STATUS CHAR(1),
+    ROID NUMBER(8)
+);
+
+CREATE INDEX ENT_ROID_IX ON ENT(ROID);
+CREATE INDEX ENT_TIN_IX ON ENT(TIN);
 
 -- =============================================================================
 -- TIMENON - Non-Case Time Entries
 -- =============================================================================
 CREATE TABLE TIMENON (
-    RPTDT DATE,
     ROID NUMBER(8),
-    TIMECODE CHAR(3),
-    CONTCD CHAR(1),
-    TIMEDEF CHAR(1),
+    RPTDT DATE,
+    TIMECODE CHAR(5),
     HOURS NUMBER(4,2),
-    EXTRDT DATE,
-    EMPIDNUM VARCHAR2(10),
-    LATEFLAG CHAR(1),
-    PRIMARY KEY (RPTDT, ROID, TIMECODE)
+    ENTRYDT DATE,
+    QUARTER CHAR(2),
+    PRIMARY KEY (ROID, RPTDT, TIMECODE)
 );
 
-CREATE INDEX TIMENON_ROID_IX ON TIMENON(ROID);
 CREATE INDEX TIMENON_RPTDT_IX ON TIMENON(RPTDT);
+CREATE INDEX TIMENON_ROID_IX ON TIMENON(ROID);
 
 -- =============================================================================
 -- TIMETIN - Case/TIN Time Entries
 -- =============================================================================
 CREATE TABLE TIMETIN (
-    TIMESID NUMBER(10) PRIMARY KEY,
-    RPTDT DATE,
     ROID NUMBER(8),
-    CONTCD CHAR(1),
-    CODE CHAR(3),
-    SUBCODE CHAR(3),
+    TIMESID NUMBER(8),
+    RPTDT DATE,
     HOURS NUMBER(4,2),
-    GRADE NUMBER(2),
-    EXTRDT DATE,
-    BODCD CHAR(2),
-    BODCLCD CHAR(3),
-    EMPIDNUM VARCHAR2(10),
-    LATEFLAG CHAR(1),
-    SEGIND CHAR(1),
-    TDACNT NUMBER(3),
-    TDICNT NUMBER(3),
-    RISK NUMBER(3),
-    PRGNAME1 VARCHAR2(40),
-    PRGNAME2 VARCHAR2(40)
+    ENTRYDT DATE,
+    PRIMARY KEY (ROID, TIMESID, RPTDT)
 );
 
-CREATE INDEX TIMETIN_ROID_IX ON TIMETIN(ROID);
 CREATE INDEX TIMETIN_RPTDT_IX ON TIMETIN(RPTDT);
-
--- =============================================================================
--- ENT - Case/TIN Master (key columns only)
--- =============================================================================
-CREATE TABLE ENT (
-    TINSID NUMBER(10) PRIMARY KEY,
-    EXTRDT DATE,
-    TIN NUMBER(9),
-    TINFS NUMBER(1),
-    TINTT NUMBER(1),
-    TP VARCHAR2(70),
-    TP2 VARCHAR2(70),
-    TPCTRL CHAR(4),
-    STREET VARCHAR2(70),
-    CITY VARCHAR2(25),
-    STATE CHAR(2),
-    ZIPCDE NUMBER(12),
-    CASECODE CHAR(3),
-    SUBCODE CHAR(3),
-    GRADE NUMBER(2),
-    TOTHRS NUMBER(7,2),
-    STATUS CHAR(1),
-    RISK NUMBER(3)
-);
-
-CREATE INDEX ENT_TIN_IX ON ENT(TIN);
+CREATE INDEX TIMETIN_ROID_IX ON TIMETIN(ROID);
+CREATE INDEX TIMETIN_TIMESID_IX ON TIMETIN(TIMESID);

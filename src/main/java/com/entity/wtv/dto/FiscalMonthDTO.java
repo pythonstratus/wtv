@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * DTO for a single Fiscal Month in CTRS Calendar
  * 
- * Maps to ENTMONTH table record
+ * Maps to ENTMONTH table record with expanded week details
  */
 @Data
 @Builder
@@ -16,7 +16,7 @@ import java.util.List;
 public class FiscalMonthDTO {
 
     /**
-     * RPTMONTH value (e.g., "OCT2026")
+     * RPTMONTH value (e.g., "OCT2025")
      */
     private String rptMonth;
 
@@ -46,32 +46,32 @@ public class FiscalMonthDTO {
     private String dateRange;
 
     /**
-     * Number of workdays
+     * Total workdays for the month (sum of all weeks)
      */
     private Integer workdays;
 
     /**
-     * Number of holidays (calculated or stored)
+     * Total holidays for the month (sum of all weeks)
      */
     private Integer holidays;
 
     /**
-     * Hours (typically same as workdays in UI)
+     * Total hours for the month (sum of all weeks)
      */
     private Integer hours;
 
     /**
-     * Start cycle number (e.g., 202601)
+     * Start cycle number (e.g., 202501)
      */
     private Integer startCycle;
 
     /**
-     * End cycle number (e.g., 202604)
+     * End cycle number (e.g., 202504 or 202505)
      */
     private Integer endCycle;
 
     /**
-     * Individual weeks within this month
+     * Individual weeks/posting cycles within this month
      */
     private List<WeekCycleDTO> weeks;
 
@@ -81,17 +81,30 @@ public class FiscalMonthDTO {
     private LocalDate rptNational;
 
     /**
-     * Inner class for week/cycle details
+     * Whether this month can be expanded to show weeks
+     */
+    @Builder.Default
+    private Boolean expandable = true;
+
+    /**
+     * Inner class for week/posting cycle details
+     * Each week represents one posting cycle (e.g., 202501, 202502)
      */
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class WeekCycleDTO {
+        
         /**
-         * Cycle number (e.g., 202601)
+         * Posting cycle number (e.g., 202501, 202502)
          */
         private Integer cycleNumber;
+
+        /**
+         * Week number within the month (1, 2, 3, 4, or 5)
+         */
+        private Integer weekNumber;
 
         /**
          * Week start date (Sunday)
@@ -109,8 +122,18 @@ public class FiscalMonthDTO {
         private String dateRange;
 
         /**
-         * Workdays in this week (typically 5)
+         * Workdays in this week (typically 5, can be less due to holidays)
          */
         private Integer workdays;
+
+        /**
+         * Holidays in this week (0, 1, or more)
+         */
+        private Integer holidays;
+
+        /**
+         * Hours for this week (workdays * 8, or custom value)
+         */
+        private Integer hours;
     }
 }

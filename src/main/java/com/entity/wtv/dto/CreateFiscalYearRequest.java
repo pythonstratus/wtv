@@ -3,7 +3,6 @@ package com.entity.wtv.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Request DTO for creating a new Fiscal Year
@@ -15,37 +14,37 @@ import java.util.List;
 public class CreateFiscalYearRequest {
 
     /**
-     * Fiscal year to create (e.g., 2027)
+     * Fiscal year to create (e.g., 2026)
+     * FY2026 = October 2025 - September 2026
      */
     @NotNull(message = "Fiscal year is required")
     @Min(value = 2000, message = "Fiscal year must be 2000 or later")
-    @Max(value = 2100, message = "Fiscal year must be before 2100")
+    @Max(value = 2100, message = "Fiscal year must be 2100 or earlier")
     private Integer fiscalYear;
 
     /**
-     * Start date of the fiscal year (first Sunday of October period)
-     * If not provided, will be calculated
+     * Optional start date override
+     * If not provided, calculates first Sunday on or before Oct 1
      */
     private LocalDate startDate;
 
     /**
-     * Optional: Provide month details if not auto-generating
-     * If empty, months will be auto-generated
+     * If true, creates empty fiscal year structure without auto-generating dates
+     * User will need to manually enter all data
+     * Default: false (auto-generate)
      */
-    private List<MonthInput> months;
+    @Builder.Default
+    private Boolean empty = false;
 
     /**
-     * Inner class for optional month input
+     * If true, copies structure from previous fiscal year
+     * Useful when patterns are similar year to year
      */
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MonthInput {
-        private String monthAbbrev;  // e.g., "OCT", "NOV"
-        private LocalDate startDate;
-        private LocalDate endDate;
-        private Integer weeks;
-        private Integer workdays;
-    }
+    @Builder.Default
+    private Boolean copyFromPrevious = false;
+
+    /**
+     * Source fiscal year to copy from (if copyFromPrevious is true)
+     */
+    private Integer sourceYear;
 }

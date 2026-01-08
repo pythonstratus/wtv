@@ -145,4 +145,59 @@ public interface EntmonthRepository extends JpaRepository<Entmonth, String> {
             END
         """)
     List<Entmonth> findByFiscalYearOrdered(@Param("year") String year);
+
+    // =========================================================================
+    // CTRS Calendar - Active Status Queries
+    // =========================================================================
+
+    /**
+     * Update active status for all months in a fiscal year
+     */
+    @Modifying
+    @Query("UPDATE Entmonth e SET e.active = :status WHERE e.rptmonth LIKE %:year")
+    int updateActiveStatusByFiscalYear(@Param("year") String year, @Param("status") String status);
+
+    /**
+     * Find only active months for a fiscal year
+     */
+    @Query("""
+        SELECT e FROM Entmonth e 
+        WHERE e.rptmonth LIKE %:year 
+        AND (e.active = 'Y' OR e.active IS NULL)
+        ORDER BY e.startdt
+        """)
+    List<Entmonth> findActiveFiscalYearMonths(@Param("year") String year);
+
+    /**
+     * Check if fiscal year has any active months
+     */
+    @Query("SELECT COUNT(e) > 0 FROM Entmonth e WHERE e.rptmonth LIKE %:year AND e.active = 'Y'")
+    boolean hasActiveMonths(@Param("year") String year);
+
+    /**
+     * Get fiscal years that are active
+     */
+    @Query("""
+        SELECT DISTINCT CAST(SUBSTRING(e.rptmonth, 4, 4) AS integer) 
+        FROM Entmonth e 
+        WHERE e.active = 'Y' OR e.active IS NULL
+        ORDER BY 1 DESC
+        """)
+    List<Integer> findActiveFiscalYears();
+
+    // =========================================================================
+    // CTRS Calendar - Bulk Operations
+    // =========================================================================
+
+    /**
+     * Find all months by list of RPTMONTH values
+     */
+    @Query("SELECT e FROM Entmonth e WHERE e.rptmonth IN :rptMonths")
+    List<Entmonth> findAllByRptmonthIn(@Param("rptMonths") List<String> rptMonths);
+
+    /**
+     * Get next available cycle number (max endcyc + 1 across all years)
+     */
+    @Query("SELECT COALESCE(MAX(e.endcyc), 0) + 1 FROM Entmonth e")
+    Integer getNextAvailableCycle();
 }

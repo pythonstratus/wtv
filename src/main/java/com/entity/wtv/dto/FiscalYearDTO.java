@@ -36,17 +36,27 @@ public class FiscalYearDTO {
     private Integer totalWorkdays;
 
     /**
+     * Total holidays in the fiscal year
+     */
+    private Integer totalHolidays;
+
+    /**
+     * Total hours in the fiscal year
+     */
+    private Integer totalHours;
+
+    /**
      * List of 12 fiscal months (October - September)
      */
     private List<FiscalMonthDTO> months;
 
     /**
-     * Active status (if versioning is used)
+     * Active status - only one fiscal year version can be active
      */
     private Boolean active;
 
     /**
-     * Version identifier (e.g., "Active 10282025")
+     * Status label for display (e.g., "Active", "Inactive")
      */
-    private String version;
+    private String status;
 }

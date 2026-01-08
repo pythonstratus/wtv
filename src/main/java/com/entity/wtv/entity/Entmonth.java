@@ -7,7 +7,7 @@ import java.time.LocalDate;
 /**
  * ENTMONTH - Pay Period / Reporting Month Reference Table
  * 
- * Source: ENTITYDEV.ENTMONTH (8 columns)
+ * Source: ENTITYDEV.ENTMONTH
  * Primary Key: RPTMONTH (e.g., "OCT2019", "NOV2019")
  * 
  * Used in:
@@ -76,18 +76,54 @@ public class Entmonth {
     @Column(name = "RPTNATIONAL")
     private LocalDate rptnational;
 
+    /**
+     * Active status - 'Y' for active, 'N' for inactive
+     * Only one version of a fiscal year should be active
+     */
+    @Column(name = "ACTIVE", length = 1)
+    @Builder.Default
+    private String active = "Y";
+
+    /**
+     * Total holidays for this month (new field for CTRS Calendar)
+     */
+    @Column(name = "HOLIDAYS")
+    @Builder.Default
+    private Integer holidays = 0;
+
+    /**
+     * Total hours for this month (calculated or override)
+     */
+    @Column(name = "HOURS")
+    private Integer hours;
+
+    /**
+     * Week-level data stored as JSON (for holidays/hours per week)
+     * Format: [{"cycle":202501,"workdays":5,"holidays":0,"hours":40}, ...]
+     */
+    @Column(name = "WEEK_DATA", length = 1000)
+    private String weekData;
+
     // =========================================================================
     // Helper Methods
     // =========================================================================
 
     /**
      * Extract fiscal year from RPTMONTH
-     * e.g., "OCT2026" -> 2026, "JAN2026" -> 2026
+     * e.g., "OCT2026" -> 2027 (FY2027), "JAN2026" -> 2026 (FY2026)
+     * 
+     * Note: OCT, NOV, DEC of year YYYY belong to FY(YYYY+1)
      */
     public Integer getFiscalYear() {
         if (rptmonth == null || rptmonth.length() < 7) return null;
         try {
-            return Integer.parseInt(rptmonth.substring(3));
+            int calendarYear = Integer.parseInt(rptmonth.substring(3));
+            String monthAbbrev = rptmonth.substring(0, 3).toUpperCase();
+            // OCT, NOV, DEC belong to the NEXT fiscal year
+            if ("OCT".equals(monthAbbrev) || "NOV".equals(monthAbbrev) || "DEC".equals(monthAbbrev)) {
+                return calendarYear + 1;
+            }
+            return calendarYear;
         } catch (NumberFormatException e) {
             return null;
         }
@@ -146,9 +182,26 @@ public class Entmonth {
     }
 
     /**
-     * Calculate hours (workdays * 8, but UI shows same as workdays)
+     * Check if this month is active
      */
-    public Integer getHours() {
-        return workdays;
+    public boolean isActive() {
+        return "Y".equals(active);
+    }
+
+    /**
+     * Set active status
+     */
+    public void setActiveStatus(boolean isActive) {
+        this.active = isActive ? "Y" : "N";
+    }
+
+    /**
+     * Calculate hours (workdays * 8 if not explicitly set)
+     */
+    public Integer getCalculatedHours() {
+        if (hours != null) {
+            return hours;
+        }
+        return workdays != null ? workdays * 8 : null;
     }
 }
