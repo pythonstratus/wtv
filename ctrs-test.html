@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTRS Calendar - API Test Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .status-bar {
+            background: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+        
+        .status-dot.connected { background: #48bb78; }
+        .status-dot.error { background: #f56565; }
+        
+        .base-url-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #3182ce;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2c5282;
+        }
+        
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #38a169;
+        }
+        
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+        
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+        
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .card.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .card-header {
+            background: #edf2f7;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .method-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        .method-get { background: #c6f6d5; color: #22543d; }
+        .method-post { background: #bee3f8; color: #2a4365; }
+        .method-put { background: #faf089; color: #744210; }
+        .method-delete { background: #fed7d7; color: #822727; }
+        
+        .card-body {
+            padding: 16px;
+        }
+        
+        .endpoint-url {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            color: #4a5568;
+            background: #f7fafc;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            word-break: break-all;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .form-group .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .form-group input[type="checkbox"] {
+            width: auto;
+        }
+        
+        .response-area {
+            margin-top: 12px;
+        }
+        
+        .response-area pre {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            overflow-x: auto;
+            max-height: 300px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .response-area .status {
+            font-size: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .response-area .status.success { color: #48bb78; }
+        .response-area .status.error { color: #f56565; }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #718096;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            color: #2d3748;
+        }
+        
+        .tab.active {
+            color: #3182ce;
+            border-bottom-color: #3182ce;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        .info-box {
+            background: #ebf8ff;
+            border: 1px solid #90cdf4;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #2c5282;
+        }
+
+        .info-box.warning {
+            background: #fffff0;
+            border-color: #ecc94b;
+            color: #744210;
+        }
+
+        .fiscal-year-display {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .fy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .fy-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .fy-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .fy-status.active {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .fy-status.inactive {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .month-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .month-table th {
+            background: #2d3748;
+            color: white;
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .month-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .month-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .month-table tr.expandable {
+            cursor: pointer;
+        }
+
+        .month-table .weeks-row {
+            background: #f7fafc;
+        }
+
+        .month-table .weeks-row td {
+            padding-left: 40px;
+        }
+
+        .cycle-badge {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 11px;
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .totals-row {
+            background: #edf2f7;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗓️ CTRS Calendar - API Test Dashboard</h1>
+        <p>Test all CTRS Calendar endpoints for fiscal year and calendar management</p>
+    </div>
+    
+    <div class="container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Checking connection...</span>
+            </div>
+            <input type="text" class="base-url-input" id="baseUrl" value="http://localhost:8080" />
+            <button class="btn btn-primary" onclick="checkHealth()">Check Connection</button>
+            <button class="btn btn-secondary" onclick="openSwagger()">Open Swagger UI</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('read')">📖 Read Operations</div>
+            <div class="tab" onclick="showTab('create')">➕ Create</div>
+            <div class="tab" onclick="showTab('update')">✏️ Update</div>
+            <div class="tab" onclick="showTab('status')">🔄 Status Changes</div>
+            <div class="tab" onclick="showTab('delete')">🗑️ Delete</div>
+        </div>
+
+        <!-- READ TAB -->
+        <div id="read" class="tab-content active">
+            <div class="grid">
+                <!-- Get All Fiscal Years -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Get All Fiscal Years</h3>
+                        <span class="method-badge method-get">GET</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-url">/api/ctrs/fiscal-years</div>
+                        <p style="font-size: 13px; color: #718096; margin-bottom: 12px;">
+                            Returns list of all available fiscal years for dropdown.
+                        </p>
+                        <button class="btn btn-success" onclick="getAllFiscalYears()">Execute</button>
+                        <div class="response-area" id="getAllFYResponse"></div>
+                    </div>
+                </div>
+
+                <!-- Get Active Fiscal Years -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Get Active Fiscal Years</h3>
+                        <span class="method-badge method-get">GET</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-url">/api/ctrs/fiscal-years/active</div>
+                        <p style="font-size: 13px; color: #718096; margin-bottom: 12px;">
+                            Returns only fiscal years that are marked as active.
+                        </p>
+                        <button class="btn btn-success" onclick="getActiveFiscalYears()">Execute</button>
+                        <div class="response-area" id="getActiveFYResponse"></div>
+                    </div>
+                </div>
+
+                <!-- Get Fiscal Year Details -->
+                <div class="card full-width">
+                    <div class="card-header">
+                        <h3>Get Fiscal Year Details</h3>
+                        <span class="method-badge method-get">GET</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-url">/api/ctrs/fiscal-years/{year}</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Fiscal Year</label>
+                                <select id="getFYYear">
+                                    <option value="2026">2026</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2024">2024</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-success" onclick="getFiscalYear()">Execute</button>
+                        <div class="response-area" id="getFYResponse"></div>
+                        <div id="fyDisplayContainer"></div>
+                    </div>
+                </div>
+
+                <!-- Get Fiscal Month -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Get Fiscal Month Details</h3>
+                        <span class="method-badge method-get">GET</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-url">/api/ctrs/months/{rptMonth}</div>
+                        <div class="form-group">
+                            <label>RPT Month (e.g., OCT2025)</label>
+                            <input type="text" id="getMonthRpt" value="OCT2025" placeholder="e.g., OCT2025" />
+                        </div>
+                        <button class="btn btn-success" onclick="getFiscalMonth()">Execute</button>
+                        <div class="response-area" id="getMonthResponse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CREATE TAB -->
+        <div id="create" class="tab-content">
+            <div class="grid">
+                <!-- Create Fiscal Year -->
+                <div class="card full-width">
+                    <div class="card-header">
+                        <h3>Create New Fiscal Year</h3>
+                        <span class="method-badge method-post">POST</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-url">/api/ctrs/fiscal-years</div>
+                        
+                        <div class="info-box">
+                            <strong>Note:</strong> FY2027 = October 2026 - September 2027. 
+                            Dates are auto-generated unless "Create Empty" is checked.
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Fiscal Year</label>
+                                <input type="number" id="createFYYear" value="2027" min="2000" max="2100" />
+                            </div>
+                            <div class="form-group">
+                                <label>Start Date (Optional)</label>
+                                <input type="date" id="createFYStartDate" />
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="createFYEmpty" />
+                                    Create Empty (no auto-generated dates)
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="createFYCopy" />
+                                    Copy from Previous Year
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" id="sourceYearGroup" style="display: none;">
+                            <label>Source Year (for copy)</label>
+                            <input type="number" id="createFYSourceYear" value="2026" />
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Request Body Preview</label>
+                            <textarea id="createFYBody" readonly></textarea>
+                        </div>
+                        
+                        <button class="btn btn-success" onclick="createFiscalYear()">Create Fiscal Year</button>
+                        <div class="response-area" id="createFYResponse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UPDATE TAB -->
+        <div id="update" class="tab-content">
+            <div class="grid">
+                <!-- Update Fiscal Month -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Update Fiscal Month</h3>
+                        <span class="method-badge method-put">PUT</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-url">/api/ctrs/months/{rptMonth}</div>
+                        
+                        <div class="form-group">
+                            <label>RPT Month</label>
+                            <input type="text" id="updateMonthRpt" value="OCT2025" />
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Workdays</label>
+                                <input type="number" id="updateMonthWorkdays" value="20" min="0" max="31" />
+                            </div>
+                            <div class="form-group">
+                                <label>Holidays</label>
+                                <input type="number" id="updateMonthHolidays" value="1" min="0" max="10" />
+                            </div>
+                            <div class="form-group">
+                                <label>Hours</label>
+                                <input type="number" id="updateMonthHours" value="20" min="0" />
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-warning" onclick="updateFiscalMonth()">Update Month</button>
+                        <div class="response-area" id="updateMonthResponse"></div>
+                    </div>
+                </div>
+
+                <!-- Update with Week Details -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Update Month with Week Details</h3>
+                        <span class="method-badge method-put">PUT</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-url">/api/ctrs/months/{rptMonth}</div>
+                        
+                        <div class="info-box warning">
+                            <strong>Advanced:</strong> This updates individual weeks within a month.
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>RPT Month</label>
+                            <input type="text" id="updateWeekMonthRpt" value="OCT2025" />
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Request Body (with weekUpdates)</label>
+                            <textarea id="updateWeekBody">{
+  "weekUpdates": [
+    {
+      "cycleNumber": 202601,
+      "workdays": 4,
+      "holidays": 1,
+      "hours": 4
+    },
+    {
+      "cycleNumber": 202602,
+      "workdays": 5,
+      "holidays": 0,
+      "hours": 5
+    }
+  ]
+}</textarea>
+                        </div>
+                        
+                        <button class="btn btn-warning" onclick="updateMonthWithWeeks()">Update with Weeks</button>
+                        <div class="response-area" id="updateWeekResponse"></div>
+                    </div>
+                </div>
+
+                <!-- Bulk Update Fiscal Year -->
+                <div class="card full-width">
+                    <div class="card-header">
+                        <h3>Bulk Update Fiscal Year</h3>
+                        <span class="method-badge method-put">PUT</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-url">/api/ctrs/fiscal-years/{year}</div>
+                        
+                        <div class="form-group">
+                            <label>Fiscal Year</label>
+                            <input type="number" id="bulkUpdateYear" value="2026" />
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Month Updates (JSON Array)</label>
+                            <textarea id="bulkUpdateBody" style="min-height: 150px;">[
+  {
+    "rptMonth": "OCT2025",
+    "workdays": 20,
+    "holidays": 1,
+    "hours": 20
+  },
+  {
+    "rptMonth": "NOV2025",
+    "workdays": 20,
+    "holidays": 2,
+    "hours": 20
+  }
+]</textarea>
+                        </div>
+                        
+                        <button class="btn btn-warning" onclick="bulkUpdateFiscalYear()">Bulk Update</button>
+                        <div class="response-area" id="bulkUpdateResponse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATUS TAB -->
+        <div id="status" class="tab-content">
+            <div class="grid">
+                <!-- Activate Fiscal Year -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Activate Fiscal Year</h3>
+                        <span class="method-badge method-put">PUT</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-url">/api/ctrs/fiscal-years/{year}/activate</div>
+                        
+                        <div class="info-box">
+                            Marks all months in the fiscal year as active.
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Fiscal Year</label>
+                            <select id="activateFYYear">
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-success" onclick="activateFiscalYear()">Activate</button>
+                        <div class="response-area" id="activateFYResponse"></div>
+                    </div>
+                </div>
+
+                <!-- Deactivate Fiscal Year -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Deactivate Fiscal Year</h3>
+                        <span class="method-badge method-put">PUT</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-url">/api/ctrs/fiscal-years/{year}/deactivate</div>
+                        
+                        <div class="info-box warning">
+                            Marks all months in the fiscal year as inactive.
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Fiscal Year</label>
+                            <select id="deactivateFYYear">
+                                <option value="2025">2025</option>
+                                <option value="2026">2026</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-warning" onclick="deactivateFiscalYear()">Deactivate</button>
+                        <div class="response-area" id="deactivateFYResponse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DELETE TAB -->
+        <div id="delete" class="tab-content">
+            <div class="grid">
+                <!-- Delete Fiscal Year -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Delete Fiscal Year</h3>
+                        <span class="method-badge method-delete">DELETE</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="endpoint-url">/api/ctrs/fiscal-years/{year}</div>
+                        
+                        <div class="info-box warning">
+                            <strong>⚠️ Warning:</strong> This permanently deletes all months for the fiscal year. 
+                            This cannot be undone!
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Fiscal Year to Delete</label>
+                            <input type="number" id="deleteFYYear" value="2027" />
+                        </div>
+                        
+                        <button class="btn btn-danger" onclick="deleteFiscalYear()">Delete Fiscal Year</button>
+                        <div class="response-area" id="deleteFYResponse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        CTRS Calendar API Test Dashboard | WTV Service v2.0.0 | January 2026
+    </footer>
+
+    <script>
+        // Base URL
+        function getBaseUrl() {
+            return document.getElementById('baseUrl').value.replace(/\/$/, '');
+        }
+
+        // Tab switching
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Health check
+        async function checkHealth() {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/ctrs/health`);
+                if (response.ok) {
+                    dot.className = 'status-dot connected';
+                    text.textContent = 'Connected to CTRS Service';
+                } else {
+                    throw new Error('Not OK');
+                }
+            } catch (e) {
+                dot.className = 'status-dot error';
+                text.textContent = 'Connection failed - check server';
+            }
+        }
+
+        // Open Swagger
+        function openSwagger() {
+            window.open(`${getBaseUrl()}/swagger-ui.html`, '_blank');
+        }
+
+        // Display response
+        function displayResponse(elementId, response, isError = false) {
+            const el = document.getElementById(elementId);
+            const statusClass = isError ? 'error' : 'success';
+            const statusText = isError ? '❌ Error' : '✅ Success';
+            
+            let content = response;
+            if (typeof response === 'object') {
+                content = JSON.stringify(response, null, 2);
+            }
+            
+            el.innerHTML = `
+                <div class="status ${statusClass}">${statusText}</div>
+                <pre>${content}</pre>
+            `;
+        }
+
+        // API Calls
+
+        async function getAllFiscalYears() {
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/ctrs/fiscal-years`);
+                const data = await response.json();
+                displayResponse('getAllFYResponse', data);
+            } catch (e) {
+                displayResponse('getAllFYResponse', e.message, true);
+            }
+        }
+
+        async function getActiveFiscalYears() {
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/ctrs/fiscal-years/active`);
+                const data = await response.json();
+                displayResponse('getActiveFYResponse', data);
+            } catch (e) {
+                displayResponse('getActiveFYResponse', e.message, true);
+            }
+        }
+
+        async function getFiscalYear() {
+            const year = document.getElementById('getFYYear').value;
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/ctrs/fiscal-years/${year}`);
+                const data = await response.json();
+                displayResponse('getFYResponse', data);
+                renderFiscalYearDisplay(data);
+            } catch (e) {
+                displayResponse('getFYResponse', e.message, true);
+            }
+        }
+
+        function renderFiscalYearDisplay(data) {
+            const container = document.getElementById('fyDisplayContainer');
+            if (!data || !data.months) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const statusClass = data.active ? 'active' : 'inactive';
+            const statusText = data.status || (data.active ? 'Active' : 'Inactive');
+
+            let monthRows = data.months.map(m => `
+                <tr>
+                    <td><strong>${m.monthName}</strong></td>
+                    <td>${m.postingCycles || '-'}</td>
+                    <td>${m.dateRange || '-'}</td>
+                    <td style="text-align: center;">${m.workdays || 0}</td>
+                    <td style="text-align: center;">${m.holidays || 0}</td>
+                    <td style="text-align: center;">${m.hours || 0}</td>
+                    <td><span class="cycle-badge">${m.startCycle} - ${m.endCycle}</span></td>
+                </tr>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="fiscal-year-display">
+                    <div class="fy-header">
+                        <span class="fy-title">Fiscal Year ${data.fiscalYear}</span>
+                        <span class="fy-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <table class="month-table">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Weeks</th>
+                                <th>Date Range</th>
+                                <th>Workdays</th>
+                                <th>Holidays</th>
+                                <th>Hours</th>
+                                <th>Cycles</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${monthRows}
+                            <tr class="totals-row">
+                                <td><strong>Total</strong></td>
+                                <td>${data.totalWeeks || 52}</td>
+                                <td></td>
+                                <td style="text-align: center;">${data.totalWorkdays || 0}</td>
+                                <td style="text-align: center;">${data.totalHolidays || 0}</td>
+                                <td style="text-align: center;">${data.totalHours || 0}</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        async function getFiscalMonth() {
+            const rptMonth = document.getElementById('getMonthRpt').value.toUpperCase();
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/ctrs/months/${rptMonth}`);
+                const data = await response.json();
+                displayResponse('getMonthResponse', data);
+            } catch (e) {
+                displayResponse('getMonthResponse', e.message, true);
+            }
+        }
+
+        // Create Fiscal Year
+        function updateCreateBody() {
+            const body = {
+                fiscalYear: parseInt(document.getElementById('createFYYear').value),
+                empty: document.getElementById('createFYEmpty').checked,
+                copyFromPrevious: document.getElementById('createFYCopy').checked
+            };
+            
+            const startDate = document.getElementById('createFYStartDate').value;
+            if (startDate) body.startDate = startDate;
+            
+            if (body.copyFromPrevious) {
+                body.sourceYear = parseInt(document.getElementById('createFYSourceYear').value);
+            }
+            
+            document.getElementById('createFYBody').value = JSON.stringify(body, null, 2);
+        }
+
+        document.getElementById('createFYYear').addEventListener('change', updateCreateBody);
+        document.getElementById('createFYEmpty').addEventListener('change', updateCreateBody);
+        document.getElementById('createFYCopy').addEventListener('change', function() {
+            document.getElementById('sourceYearGroup').style.display = this.checked ? 'block' : 'none';
+            updateCreateBody();
+        });
+        document.getElementById('createFYStartDate').addEventListener('change', updateCreateBody);
+        document.getElementById('createFYSourceYear').addEventListener('change', updateCreateBody);
+        updateCreateBody();
+
+        async function createFiscalYear() {
+            const body = JSON.parse(document.getElementById('createFYBody').value);
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/ctrs/fiscal-years`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                displayResponse('createFYResponse', data, !response.ok);
+            } catch (e) {
+                displayResponse('createFYResponse', e.message, true);
+            }
+        }
+
+        async function updateFiscalMonth() {
+            const rptMonth = document.getElementById('updateMonthRpt').value.toUpperCase();
+            const body = {
+                workdays: parseInt(document.getElementById('updateMonthWorkdays').value),
+                holidays: parseInt(document.getElementById('updateMonthHolidays').value),
+                hours: parseInt(document.getElementById('updateMonthHours').value)
+            };
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/ctrs/months/${rptMonth}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                displayResponse('updateMonthResponse', data, !response.ok);
+            } catch (e) {
+                displayResponse('updateMonthResponse', e.message, true);
+            }
+        }
+
+        async function updateMonthWithWeeks() {
+            const rptMonth = document.getElementById('updateWeekMonthRpt').value.toUpperCase();
+            const body = JSON.parse(document.getElementById('updateWeekBody').value);
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/ctrs/months/${rptMonth}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                displayResponse('updateWeekResponse', data, !response.ok);
+            } catch (e) {
+                displayResponse('updateWeekResponse', e.message, true);
+            }
+        }
+
+        async function bulkUpdateFiscalYear() {
+            const year = document.getElementById('bulkUpdateYear').value;
+            const body = JSON.parse(document.getElementById('bulkUpdateBody').value);
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/ctrs/fiscal-years/${year}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                displayResponse('bulkUpdateResponse', data, !response.ok);
+            } catch (e) {
+                displayResponse('bulkUpdateResponse', e.message, true);
+            }
+        }
+
+        async function activateFiscalYear() {
+            const year = document.getElementById('activateFYYear').value;
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/ctrs/fiscal-years/${year}/activate`, {
+                    method: 'PUT'
+                });
+                const data = await response.json();
+                displayResponse('activateFYResponse', data, !response.ok);
+            } catch (e) {
+                displayResponse('activateFYResponse', e.message, true);
+            }
+        }
+
+        async function deactivateFiscalYear() {
+            const year = document.getElementById('deactivateFYYear').value;
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/ctrs/fiscal-years/${year}/deactivate`, {
+                    method: 'PUT'
+                });
+                const data = await response.json();
+                displayResponse('deactivateFYResponse', data, !response.ok);
+            } catch (e) {
+                displayResponse('deactivateFYResponse', e.message, true);
+            }
+        }
+
+        async function deleteFiscalYear() {
+            const year = document.getElementById('deleteFYYear').value;
+            if (!confirm(`Are you sure you want to delete Fiscal Year ${year}? This cannot be undone!`)) {
+                return;
+            }
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/ctrs/fiscal-years/${year}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                displayResponse('deleteFYResponse', data, !response.ok);
+            } catch (e) {
+                displayResponse('deleteFYResponse', e.message, true);
+            }
+        }
+
+        // Initial health check
+        checkHealth();
+    </script>
+</body>
+</html>
